@@ -1,6 +1,11 @@
 public class GS_Mapper {
 
+    public static final String CUSTOM_FIELDS_EXTENSION = '__c';
     public GS_Mapper() { }
+
+    public Object mapTo(SObject sObj, Type domainType) {
+        return mapTo(sObj, domainType, null);
+    }
 
     public Object mapTo(SObject sObj, Type domainType, Map<String, String> config) {
         
@@ -50,10 +55,11 @@ public class GS_Mapper {
         Schema.SObjectType sObjectType = sObj.getSobjectType();
         Schema.DescribeSObjectResult sObejctDescription = sObjectType.getDescribe();
         if(sObejctDescription.isCustom()) {
-           
-        } else {
-            domainObject = JSON.deserialize(sObjJsonString, domainType);
+            //TODO: Find Right Way
+            sObjJsonString = sObjJsonString.remove(CUSTOM_FIELDS_EXTENSION);
         }
+        domainObject = JSON.deserialize(sObjJsonString, domainType);
+        
         return domainObject;
     }
 

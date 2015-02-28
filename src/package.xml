@@ -3,9 +3,10 @@
 	<types>
 		<members>GS_AccountWrapper</members>
 		<members>GS_ErrorMessage</members>
+		<members>GS_FaqWrapper</members>
 		<members>GS_Mapper</members>
 		<members>GS_MapperException</members>
 		<name>ApexClass</name>
 	</types>
-	<version>33.0</version>
+	<version>28.0</version>
 </Package>
