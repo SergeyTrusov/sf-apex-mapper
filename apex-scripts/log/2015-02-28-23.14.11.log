@@ -1,0 +1,59 @@
+Execute Anonymous
+
+================================
+
+Account[] a = [
+    Select Id, Name, Type
+    From Account
+];
+System.debug(JSON.serialize(a[0]));
+GS_Mapper mapper = new GS_Mapper();
+Object obj = mapper.mapTo(a[0], GS_AccountWrapper.class, null); 
+System.debug(obj);
+
+================================
+
+28.0 APEX_CODE,DEBUG;APEX_PROFILING,DEBUG;CALLOUT,INFO;DB,INFO;VALIDATION,INFO;WORKFLOW,INFO
+Execute Anonymous: Account[] a = [
+Execute Anonymous:     Select Id, Name, Type
+Execute Anonymous:     From Account
+Execute Anonymous: ];
+Execute Anonymous: System.debug(JSON.serialize(a[0]));
+Execute Anonymous: GS_Mapper mapper = new GS_Mapper();
+Execute Anonymous: Object obj = mapper.mapTo(a[0], GS_AccountWrapper.class, null); 
+Execute Anonymous: System.debug(obj);
+23:13:52.084 (84382916)|EXECUTION_STARTED
+23:13:52.084 (84395464)|CODE_UNIT_STARTED|[EXTERNAL]|execute_anonymous_apex
+23:13:52.087 (87009560)|SOQL_EXECUTE_BEGIN|[1]|Aggregations:0|SELECT Id, Name, Type FROM Account
+23:13:52.090 (90239267)|SOQL_EXECUTE_END|[1]|Rows:12
+23:13:52.090 (90596445)|USER_DEBUG|[5]|DEBUG|{"attributes":{"type":"Account","url":"/services/data/v33.0/sobjects/Account/001w000001BzLm2AAF"},"Name":"GenePoint","Type":"Customer - Channel","Id":"001w000001BzLm2AAF"}
+23:13:52.090 (90638229)|METHOD_ENTRY|[1]|01pw0000003c2aM|GS_Mapper.GS_Mapper()
+23:13:52.090 (90648824)|METHOD_EXIT|[1]|GS_Mapper
+23:13:52.090 (90709609)|CONSTRUCTOR_ENTRY|[6]|01pw0000003c2aM|<init>()
+23:13:52.090 (90753638)|CONSTRUCTOR_EXIT|[6]|01pw0000003c2aM|<init>()
+23:13:52.092 (92634999)|METHOD_ENTRY|[7]|01pw0000003c2aM|GS_Mapper.mapTo(SObject, system.Type, Map<String,String>)
+23:13:52.092 (92675939)|METHOD_ENTRY|[18]|01pw0000003c2aM|GS_Mapper.autoMap(SObject, system.Type)
+23:13:52.093 (93708686)|METHOD_ENTRY|[1]|01pw0000003c2ab|GS_AccountWrapper.GS_AccountWrapper()
+23:13:52.093 (93720771)|METHOD_EXIT|[1]|GS_AccountWrapper
+23:13:52.093 (93877530)|METHOD_EXIT|[18]|01pw0000003c2aM|GS_Mapper.autoMap(SObject, system.Type)
+23:13:52.093 (93888669)|METHOD_EXIT|[7]|01pw0000003c2aM|GS_Mapper.mapTo(SObject, system.Type, Map<String,String>)
+23:13:52.093 (93956855)|USER_DEBUG|[8]|DEBUG|GS_AccountWrapper:[AnnualRevenue=null, Id=001w000001BzLm2AAF, NumberOfEmployees=null, Owner=null, Type=Customer - Channel, name=GenePoint]
+23:13:52.742 (94002362)|CUMULATIVE_LIMIT_USAGE
+23:13:52.742|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 12 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+23:13:52.742|CUMULATIVE_LIMIT_USAGE_END
+
+23:13:52.094 (94045310)|CODE_UNIT_FINISHED|execute_anonymous_apex
+23:13:52.095 (95371927)|EXECUTION_FINISHED

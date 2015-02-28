@@ -1,0 +1,39 @@
+Execute Anonymous
+
+================================
+
+Account[] a = [Select Type From Account];
+System.debug(a[0].getSobjectType().getDescribe());
+System.debug(JSON.serialize(a[0]));
+
+================================
+
+28.0 APEX_CODE,DEBUG;APEX_PROFILING,DEBUG;CALLOUT,INFO;DB,INFO;VALIDATION,INFO;WORKFLOW,INFO
+Execute Anonymous: Account[] a = [Select Type From Account];
+Execute Anonymous: System.debug(a[0].getSobjectType().getDescribe());
+Execute Anonymous: System.debug(JSON.serialize(a[0]));
+19:56:51.033 (33045685)|EXECUTION_STARTED
+19:56:51.033 (33056969)|CODE_UNIT_STARTED|[EXTERNAL]|execute_anonymous_apex
+19:56:51.033 (33627367)|SOQL_EXECUTE_BEGIN|[1]|Aggregations:0|SELECT Type FROM Account
+19:56:51.036 (36413231)|SOQL_EXECUTE_END|[1]|Rows:12
+19:56:51.039 (39918891)|USER_DEBUG|[2]|DEBUG|Schema.DescribeSObjectResult[getKeyPrefix=001;getLabel=Account;getLabelPlural=Accounts;getName=Account;isAccessible=true;isCreateable=true;isCustom=false;isCustomSetting=false;isDeletable=true;isDeprecatedAndHidden=false;isFeedEnabled=true;isMergeable=true;isQueryable=true;isSearchable=true;isUndeletable=true;isUpdateable=true;]
+19:56:51.040 (40166258)|USER_DEBUG|[3]|DEBUG|{"attributes":{"type":"Account","url":"/services/data/v33.0/sobjects/Account/001w000001BzLm2AAF"},"Type":"Customer - Channel","Id":"001w000001BzLm2AAF"}
+19:56:51.162 (40214368)|CUMULATIVE_LIMIT_USAGE
+19:56:51.162|LIMIT_USAGE_FOR_NS|(default)|
+  Number of SOQL queries: 1 out of 100
+  Number of query rows: 12 out of 50000
+  Number of SOSL queries: 0 out of 20
+  Number of DML statements: 0 out of 150
+  Number of DML rows: 0 out of 10000
+  Maximum CPU time: 0 out of 10000
+  Maximum heap size: 0 out of 6000000
+  Number of callouts: 0 out of 100
+  Number of Email Invocations: 0 out of 10
+  Number of future calls: 0 out of 50
+  Number of queueable jobs added to the queue: 0 out of 50
+  Number of Mobile Apex push calls: 0 out of 10
+
+19:56:51.162|CUMULATIVE_LIMIT_USAGE_END
+
+19:56:51.040 (40255482)|CODE_UNIT_FINISHED|execute_anonymous_apex
+19:56:51.041 (41467582)|EXECUTION_FINISHED
