@@ -1,4 +1,5 @@
 # Sumlime Text Mavens Mate Project Files Ignore
+apex-scripts/
 config/
 deploy/
 *.sublime-project
