@@ -87,35 +87,34 @@ public class GS_Mapper {
                 currentPosition++;
                 token = sObjJsonString.substring(previousPosition, currentPosition);
             } else {
-                //if(token == OPEN_CURLY && previousPosition == 0 && currentPosition == 1) {
-                //    previousPosition = currentPosition;
-                //    currentPosition++;
-                //    token = sObjJsonString.substring(previousPosition, currentPosition);
-                //} else if(token == OPEN_CURLY) {
-                //    previousPosition = currentPosition;
-                //    currentPosition = sObjJsonString.indexOf(CLOSE_CURLY, previousPosition);
-                //    token = sObjJsonString.substring(previousPosition, currentPosition);
-                //} else if(token == DOUBLE_QUOTE) {
-                //    previousPosition = currentPosition;
-                //    currentPosition = sObjJsonString.indexOf(DOUBLE_QUOTE, previousPosition + 1);
-                //    token = sObjJsonString.substring(previousPosition, currentPosition);
+                if (token == OPEN_CURLY && previousPosition == 0 && currentPosition == 1) {
+                    previousPosition = currentPosition;
+                    currentPosition++;
+                    token = sObjJsonString.substring(previousPosition, currentPosition);
+                } else if (token == OPEN_CURLY) {
+                    previousPosition = currentPosition;
+                    currentPosition = sObjJsonString.indexOf(CLOSE_CURLY, previousPosition);
+                    token = sObjJsonString.substring(previousPosition, currentPosition);
+                } else if (token == DOUBLE_QUOTE) {
+                    previousPosition = currentPosition;
+                    currentPosition = sObjJsonString.indexOf(DOUBLE_QUOTE, previousPosition + 1);
+                    token = sObjJsonString.substring(previousPosition, currentPosition);
                     
-                //    stringBuilder.add(token);
-                //    System.debug(LoggingLevel.ERROR, token);
+                    stringBuilder.add(token);
+                    System.debug(LoggingLevel.ERROR, token);
 
-                //    previousPosition = currentPosition;
-                //    currentPosition = sObjJsonString.indexOf(COMMA, previousPosition + 1);
-                //    if(currentPosition == -1) {
-                //        break;
-                //    }
-                //    token = sObjJsonString.substring(previousPosition, currentPosition);
-
-                //} else if(token = CLOSE_CURLY) {
-                //    currentPosition++;
-                //} else {
+                    previousPosition = currentPosition;
+                    currentPosition = sObjJsonString.indexOf(COMMA, previousPosition + 1);
+                    if(currentPosition == -1) {
+                        break;
+                    }
+                    token = sObjJsonString.substring(previousPosition, currentPosition);
+                } else if (token == CLOSE_CURLY) {
+                    currentPosition++;
+                } else {
                     
-                //}
-                //stringBuilder.add(token);
+                }
+                stringBuilder.add(token);
             }
         }
 
