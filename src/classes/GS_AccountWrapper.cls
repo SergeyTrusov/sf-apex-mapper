@@ -1,20 +1,20 @@
 public class GS_AccountWrapper {
 
-    public String Id {get; set;}
-    public String name {get; set;}
-    public String Type {get; set;}
-    public String Owner {get; set;}
-    public Integer NumberOfEmployees {get; set;}
-    public Decimal AnnualRevenue {get; set;}
+    public String AccountId {get; set;}
+    public String AccountName {get; set;}
+    public String AccountType {get; set;}
+    public String AccountOwner {get; set;}
+    public Integer NoOfEmployees {get; set;}
+    public Decimal Revenue {get; set;}
 
     public GS_AccountWrapper() {}
     public GS_AccountWrapper(String id, String name, String type, String owner, Integer numberofemployees, Decimal annualrevenue) {
-        this.Id = id;
-        this.name = name;
-        this.Type = type;
-        this.Owner = owner;
-        this.NumberOfEmployees = numberofemployees;
-        this.AnnualRevenue = annualrevenue;
+        this.AccountId = id;
+        this.AccountName = name;
+        this.AccountType = type;
+        this.AccountOwner = owner;
+        this.NoOfEmployees = numberofemployees;
+        this.Revenue = annualrevenue;
     }
     
 }

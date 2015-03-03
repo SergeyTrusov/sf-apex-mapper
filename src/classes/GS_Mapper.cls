@@ -22,7 +22,7 @@ public class GS_Mapper {
         if(config == null) {
             domainObject = autoMap(sObj, domainType);
         } else {
-            domainObject = mapUseConfig(sObj, domainType, config);
+            domainObject = mapUseConfigThrowJson(sObj, domainType, config);
         }
 
 

@@ -6,8 +6,9 @@
 		<members>GS_FaqWrapper</members>
 		<members>GS_Mapper</members>
 		<members>GS_MapperException</members>
+		<members>GS_MapperTest</members>
 		<members>GS_StringBuilder</members>
 		<name>ApexClass</name>
 	</types>
-	<version>28.0</version>
+	<version>31.0</version>
 </Package>
