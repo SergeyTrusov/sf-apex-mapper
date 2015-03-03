@@ -13,3 +13,6 @@ deploy/
 #.project
 #.setting/
 #salesforce.schema
+
+#
+build.properties
