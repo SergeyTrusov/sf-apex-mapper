@@ -121,4 +121,27 @@ public class GS_Mapper {
         return null;
     }
 
+    private Object mapUseConfigThrowJson(SObject sObj, Type domainType, Map<String, String> config) {
+        String serializedSObj = JSON.serialize(sObj);
+
+        Map<String, Object> untypedSObjMap = (Map<String, Object>) JSON.deserializeUntyped(serializedSObj);
+        Map<String, Object> untypedDomainMap = new Map<String, Object>();
+
+        String mappingDomainValue;
+        Object value;
+        Set<String> mappingKeys = config.keySet();
+
+        for (String mappingKey : mappingKeys) {
+            if (untypedSObjMap.containsKey(mappingKey)) {
+                mappingDomainValue = config.get(mappingKey);
+                value = untypedSObjMap.get(mappingKey);
+                untypedDomainMap.put(mappingDomainValue, value);
+            }
+        }
+
+        String serializedDomain = JSON.serialize(untypedDomainMap);
+        Object result = JSON.deserialize(serializedDomain, domainType);
+        return result;
+    }
+
 }
