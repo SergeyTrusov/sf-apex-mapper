@@ -2,6 +2,7 @@
 apex-scripts/
 config/
 deploy/
+debug/
 *.sublime-project
 *.sublime-settings
 *.sublime-workspace
