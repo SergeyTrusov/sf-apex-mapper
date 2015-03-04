@@ -11,11 +11,11 @@ public class GS_Mapper {
     public Object mapTo(SObject sObj, Type domainType, Map<String, String> config) {
         
         if(sObj == null) {
-            return new GS_MapperException(GS_ErrorMessage.valueIsNull('sObj'));
+            throw new GS_MapperException(GS_ErrorMessage.valueIsNull('sObj'));
         }
 
         if(domainType == null) {
-            return new GS_MapperException(GS_ErrorMessage.valueIsNull('domainType'));
+            throw new GS_MapperException(GS_ErrorMessage.valueIsNull('domainType'));
         }
 
         Object domainObject = null;
