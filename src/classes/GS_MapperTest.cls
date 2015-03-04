@@ -10,21 +10,22 @@ private class GS_MapperTest {
         'AnnualRevenue' => 'Revenue'
     };
 
-    public static final String ACCOUNT_NAME = 'Test Account';
+    private static final String ACCOUNT_NAME = 'Test Account';
+    private static final Decimal ACCOUNT_ANNUAL_REVENUE = 55.0;
+    private static final Integer ACCOUNT_NUMBER_OF_EMPLOYEES = 20;
 
     @testSetup
-    static void prepareData() {
+    static void setupData() {
         Account testAccount = new Account(
             Name = ACCOUNT_NAME,
-            AnnualRevenue = 55.0,
-            NumberOfEmployees = 20
+            AnnualRevenue = ACCOUNT_ANNUAL_REVENUE,
+            NumberOfEmployees = ACCOUNT_NUMBER_OF_EMPLOYEES
         );
         insert testAccount;
     }
     
     @isTest(seeAllData = false)
-    static void testMapping() {
-        //prepareData();
+    static void testMappingUseConfig() {
 
         Account[] accounts = [
             Select Id, Name, AnnualRevenue, NumberOfEmployees
@@ -40,10 +41,70 @@ private class GS_MapperTest {
         );
 
         System.assert(String.isNotBlank(mappingResult.AccountId));
-        //System.assertEquals('Test Account', mappingResult.AccountName);
-        //System.assertEquals(55.0, mappingResult.Revenue);
-        //System.assertEquals(20, mappingResult.NoOfEmployees);
-
+        System.assertEquals(ACCOUNT_NAME, mappingResult.AccountName);
+        System.assertEquals(ACCOUNT_ANNUAL_REVENUE, mappingResult.Revenue);
+        System.assertEquals(ACCOUNT_NUMBER_OF_EMPLOYEES, mappingResult.NoOfEmployees);
     }
+
+    @isTest(seeAllData = false)
+    static void testMappingExceptions() {
+
+        GS_Mapper mapper = new GS_Mapper();
+        GS_AccountWrapper mappingResult = null;
+
+        try {
+            mappingResult = (GS_AccountWrapper) mapper.mapTo(null, null);
+        } catch(GS_MapperException mapperException) {
+            System.assertEquals(GS_ErrorMessage.valueIsNull('sObj'), mapperException.getMessage());
+        }
+
+        Account[] accounts = [
+            SELECT Id, Name, AnnualRevenue, NumberOfEmployees
+            FROM Account
+            WHERE Name = :ACCOUNT_NAME
+            LIMIT 1
+        ];
+
+        try {
+            mappingResult = (GS_AccountWrapper) mapper.mapTo(accounts[0], null);
+        } catch(GS_MapperException mapperException) {
+            System.assertEquals(GS_ErrorMessage.valueIsNull('domainType'), mapperException.getMessage());
+        }
+
+        System.assertEquals(mappingResult, null);
+    }
+
     
+    @isTest(seeAllData = false)
+    static void testAutoMapping() {
+
+        Account[] accounts = [
+            Select Id, Name, AnnualRevenue, NumberOfEmployees
+            From Account
+            Where Name = :ACCOUNT_NAME
+        ];
+
+        GS_Mapper mapper = new GS_Mapper();
+        GS_AccountWrapperSF mappingResult = (GS_AccountWrapperSF) mapper.mapTo(
+            accounts[0], 
+            GS_AccountWrapperSF.class
+        );
+
+        System.assert(String.isNotBlank(mappingResult.Id));
+        System.assertEquals(ACCOUNT_NAME, mappingResult.Name);
+        System.assertEquals(ACCOUNT_ANNUAL_REVENUE, mappingResult.AnnualRevenue);
+        System.assertEquals(ACCOUNT_NUMBER_OF_EMPLOYEES, mappingResult.NumberOfEmployees);
+    }
+
+    abstract class GS_SObjectWrapperBase {
+        public String Id {get; set;}
+        public String Name {get; set;}
+    }
+
+    class GS_AccountWrapperSF extends GS_SObjectWrapperBase {
+        public String Type {get; set;}
+        public String Owner {get; set;}
+        public Integer NumberOfEmployees {get; set;}
+        public Decimal AnnualRevenue {get; set;}
+    }
 }
