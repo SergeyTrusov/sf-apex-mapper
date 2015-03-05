@@ -34,9 +34,9 @@ private class GS_MapperTest {
         ];
 
         GS_Mapper mapper = new GS_Mapper();
-        GS_AccountWrapper mappingResult = (GS_AccountWrapper) mapper.mapTo(
+        GS_AccountWrapperCF mappingResult = (GS_AccountWrapperCF) mapper.mapTo(
             accounts[0], 
-            GS_AccountWrapper.class,
+            GS_AccountWrapperCF.class,
             mappingAccountConfig
         );
 
@@ -50,10 +50,10 @@ private class GS_MapperTest {
     static void testMappingExceptions() {
 
         GS_Mapper mapper = new GS_Mapper();
-        GS_AccountWrapper mappingResult = null;
+        GS_AccountWrapperCF mappingResult = null;
 
         try {
-            mappingResult = (GS_AccountWrapper) mapper.mapTo(null, null);
+            mappingResult = (GS_AccountWrapperCF) mapper.mapTo(null, null);
         } catch(GS_MapperException mapperException) {
             System.assertEquals(GS_ErrorMessage.valueIsNull('sObj'), mapperException.getMessage());
         }
@@ -66,7 +66,7 @@ private class GS_MapperTest {
         ];
 
         try {
-            mappingResult = (GS_AccountWrapper) mapper.mapTo(accounts[0], null);
+            mappingResult = (GS_AccountWrapperCF) mapper.mapTo(accounts[0], null);
         } catch(GS_MapperException mapperException) {
             System.assertEquals(GS_ErrorMessage.valueIsNull('domainType'), mapperException.getMessage());
         }
@@ -107,4 +107,25 @@ private class GS_MapperTest {
         public Integer NumberOfEmployees {get; set;}
         public Decimal AnnualRevenue {get; set;}
     }
+
+    public class GS_AccountWrapperCF {
+
+        public String AccountId {get; set;}
+        public String AccountName {get; set;}
+        public String AccountType {get; set;}
+        public String AccountOwner {get; set;}
+        public Integer NoOfEmployees {get; set;}
+        public Decimal Revenue {get; set;}
+
+        //public GS_AccountWrapperCF() {}
+        //public GS_AccountWrapperCF(String id, String name, String type, String owner, Integer numberofemployees, Decimal annualrevenue) {
+        //    this.AccountId = id;
+        //    this.AccountName = name;
+        //    this.AccountType = type;
+        //    this.AccountOwner = owner;
+        //    this.NoOfEmployees = numberofemployees;
+        //    this.Revenue = annualrevenue;
+        //}
+    }
+
 }
