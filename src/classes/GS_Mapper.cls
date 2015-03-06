@@ -102,37 +102,24 @@ public class GS_Mapper {
         String serializedDomain = JSON.serialize(domainObj);
 
         Map<String, Object> untypedDomainMap = (Map<String, Object>) JSON.deserializeUntyped(serializedDomain);
-        Map<String, Object> untypedSObjMap = new Map<String, Object>();
 
-        String mappingSObjValue;
+        String mappingSObjFieldValue;
         Object value;
         Set<String> mappingKeys = config.keySet();
 
+        SObject sObj = sObjType.newSObject();
+        Map<String, Schema.SObjectField> fieldSet = sObjType.getDescribe().fields.getMap();
+        //throw new GS_MapperException(JSON.serialize(fieldSet));
+
         for (String mappingKey : mappingKeys) {
             if (untypedDomainMap.containsKey(mappingKey)) {
-                mappingSObjValue = config.get(mappingKey);
+                mappingSObjFieldValue = config.get(mappingKey);
                 value = untypedDomainMap.get(mappingKey);
-                if (value != null) {
-                    untypedSObjMap.put(mappingSObjValue, value);
+                if (value != null && fieldSet.containsKey(mappingSObjFieldValue)) {
+                    sObj.put(mappingSObjFieldValue, value);
                 }
             }
         }
-
-        SObjectTypeIdentifier typeIdentifier = new SObjectTypeIdentifier(); 
-        typeIdentifier.type = sObjType.getDescribe().name;
-        untypedSObjMap.put('attributes', typeIdentifier);
-
-
-        String serializedSObj = 
-            '{"' + sObjType.getDescribe().name + '":'
-               + JSON.serialize(untypedSObjMap)
-            + '}';
-
-
-        SObject instance = sObjType.newSObject();
-
-        Map<String, SObject> mapWithSObj = (Map<String, sObject>) JSON.deserialize(serializedSObj, Map<String, sObject>.class);
-        SObject sObj = mapWithSObj.get(sObjType.getDescribe().name);
 
         return sObj;
     }
