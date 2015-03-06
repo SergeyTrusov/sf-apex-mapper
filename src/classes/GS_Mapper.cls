@@ -2,9 +2,9 @@ public class GS_Mapper {
 
     public static final String CUSTOM_FIELDS_EXTENSION = '__c';
 
-    public class SObjectTypeIdentifier  {
-        public String type {get;set;}
-    }    
+    //public class SObjectTypeIdentifier {
+    //    public String type {get;set;}
+    //}
 
     public GS_Mapper() { }
 
@@ -33,6 +33,10 @@ public class GS_Mapper {
         return domainObject;
     }
 
+    public SObject mapToSObj(Object domainObject, SObjectType sObjType) {
+        return mapToSObj(domainObject, sObjType, null);
+    }
+
     public SObject mapToSObj(Object domainObject, SObjectType sObjType, Map<String, String> reverseConfig) {
         if (domainObject == null) {
             throw new GS_MapperException(GS_ErrorMessage.valueIsNull('object'));
@@ -40,7 +44,7 @@ public class GS_Mapper {
 
         SObject sObj = null;
         if (reverseConfig == null) {
-            // auto map needed
+            sObj = reverseAutoMap(domainObject, sObjType);
         } else {
             sObj = reverseMapUseConfig(domainObject, sObjType, reverseConfig);
         }
@@ -109,7 +113,6 @@ public class GS_Mapper {
 
         SObject sObj = sObjType.newSObject();
         Map<String, Schema.SObjectField> fieldSet = sObjType.getDescribe().fields.getMap();
-        //throw new GS_MapperException(JSON.serialize(fieldSet));
 
         for (String mappingKey : mappingKeys) {
             if (untypedDomainMap.containsKey(mappingKey)) {
@@ -124,6 +127,25 @@ public class GS_Mapper {
         return sObj;
     }
 
+    private SObject reverseAutoMap(Object domainObj, sObjectType sObjType) {
+        String serializedDomain = JSON.serialize(domainObj);
+
+        Map<String, Object> untypedDomainMap = (Map<String, Object>) JSON.deserializeUntyped(serializedDomain);
+
+        Object value;
+
+        SObject sObj = sObjType.newSObject();
+        Map<String, Schema.SObjectField> fieldSet = sObjType.getDescribe().fields.getMap();
+
+        for (String domainObjectKey : untypedDomainMap.keySet()) {
+            value = untypedDomainMap.get(domainObjectKey);
+            if (value != null && fieldSet.containsKey(domainObjectKey)) {
+                sObj.put(domainObjectKey, value);
+            }
+        }
+
+        return sObj;
+    }
 
 
     //
