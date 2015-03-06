@@ -2,10 +2,6 @@ public class GS_Mapper {
 
     public static final String CUSTOM_FIELDS_EXTENSION = '__c';
 
-    //public class SObjectTypeIdentifier {
-    //    public String type {get;set;}
-    //}
-
     public GS_Mapper() { }
 
     public Object mapTo(SObject sObj, Type domainType) {
@@ -135,11 +131,15 @@ public class GS_Mapper {
         Object value;
 
         SObject sObj = sObjType.newSObject();
-        Map<String, Schema.SObjectField> fieldSet = sObjType.getDescribe().fields.getMap();
+        Schema.DescribeSObjectResult sObjectDescription = sObjType.getDescribe();
+        Map<String, Schema.SObjectField> fieldSet = sObjectDescription.fields.getMap();
 
         for (String domainObjectKey : untypedDomainMap.keySet()) {
             value = untypedDomainMap.get(domainObjectKey);
             if (value != null && fieldSet.containsKey(domainObjectKey)) {
+                if(sObjectDescription.isCustom()) {
+                    domainObjectKey += CUSTOM_FIELDS_EXTENSION;
+                }
                 sObj.put(domainObjectKey, value);
             }
         }
