@@ -2,6 +2,10 @@ public class GS_Mapper {
 
     public static final String CUSTOM_FIELDS_EXTENSION = '__c';
 
+    public class SObjectTypeIdentifier  {
+        public String type {get;set;}
+    }    
+
     public GS_Mapper() { }
 
     public Object mapTo(SObject sObj, Type domainType) {
@@ -27,6 +31,21 @@ public class GS_Mapper {
         }
 
         return domainObject;
+    }
+
+    public SObject mapToSObj(Object domainObject, SObjectType sObjType, Map<String, String> reverseConfig) {
+        if (domainObject == null) {
+            throw new GS_MapperException(GS_ErrorMessage.valueIsNull('object'));
+        }
+
+        SObject sObj = null;
+        if (reverseConfig == null) {
+            // auto map needed
+        } else {
+            sObj = reverseMapUseConfig(domainObject, sObjType, reverseConfig);
+        }
+
+        return sObj;
     }
 
     private Object autoMap(SObject sObj, Type domainType) {
@@ -78,6 +97,47 @@ public class GS_Mapper {
         Object result = JSON.deserialize(serializedDomain, domainType);
         return result;
     }
+
+    private SObject reverseMapUseConfig(Object domainObj, sObjectType sObjType, Map<String, String> config) {
+        String serializedDomain = JSON.serialize(domainObj);
+
+        Map<String, Object> untypedDomainMap = (Map<String, Object>) JSON.deserializeUntyped(serializedDomain);
+        Map<String, Object> untypedSObjMap = new Map<String, Object>();
+
+        String mappingSObjValue;
+        Object value;
+        Set<String> mappingKeys = config.keySet();
+
+        for (String mappingKey : mappingKeys) {
+            if (untypedDomainMap.containsKey(mappingKey)) {
+                mappingSObjValue = config.get(mappingKey);
+                value = untypedDomainMap.get(mappingKey);
+                if (value != null) {
+                    untypedSObjMap.put(mappingSObjValue, value);
+                }
+            }
+        }
+
+        SObjectTypeIdentifier typeIdentifier = new SObjectTypeIdentifier(); 
+        typeIdentifier.type = sObjType.getDescribe().name;
+        untypedSObjMap.put('attributes', typeIdentifier);
+
+
+        String serializedSObj = 
+            '{"' + sObjType.getDescribe().name + '":'
+               + JSON.serialize(untypedSObjMap)
+            + '}';
+
+
+        SObject instance = sObjType.newSObject();
+
+        Map<String, SObject> mapWithSObj = (Map<String, sObject>) JSON.deserialize(serializedSObj, Map<String, sObject>.class);
+        SObject sObj = mapWithSObj.get(sObjType.getDescribe().name);
+
+        return sObj;
+    }
+
+
 
     //
     // @deprecated

@@ -10,6 +10,15 @@ private class GS_MapperTest {
         'AnnualRevenue' => 'Revenue'
     };
 
+    private static Map<String, String> reverseMappingAccountConfig = new Map<String, String> {
+        'AccountId' => 'Id',
+        'AccountName' => 'Name' ,
+        'AccountType' => 'Type',
+        'AccountOwner' => 'Owner',
+        'NoOfEmployees' => 'NumberOfEmployees',
+        'Revenue' => 'AnnualRevenue'
+    };
+
     private static final String ACCOUNT_NAME = 'Test Account';
     private static final Decimal ACCOUNT_ANNUAL_REVENUE = 55.0;
     private static final Integer ACCOUNT_NUMBER_OF_EMPLOYEES = 20;
@@ -88,6 +97,34 @@ private class GS_MapperTest {
         GS_AccountWrapperSF mappingResult = (GS_AccountWrapperSF) mapper.mapTo(
             accounts[0], 
             GS_AccountWrapperSF.class
+        );
+
+        System.assert(String.isNotBlank(mappingResult.Id));
+        System.assertEquals(ACCOUNT_NAME, mappingResult.Name);
+        System.assertEquals(ACCOUNT_ANNUAL_REVENUE, mappingResult.AnnualRevenue);
+        System.assertEquals(ACCOUNT_NUMBER_OF_EMPLOYEES, mappingResult.NumberOfEmployees);
+    }
+
+    @isTest(seeAllData = false) 
+    static void testReverseMapping() {
+        Account[] accounts = [
+            Select Id, Name, AnnualRevenue, NumberOfEmployees
+            From Account
+            Where Name = :ACCOUNT_NAME
+        ];
+
+        GS_Mapper mapper = new GS_Mapper();
+
+        GS_AccountWrapperCF wrapper = new GS_AccountWrapperCF();
+        wrapper.AccountId = accounts[0].Id;
+        wrapper.AccountName = accounts[0].Name;
+        wrapper.Revenue = accounts[0].AnnualRevenue;
+        wrapper.NoOfEmployees = accounts[0].NumberOfEmployees;
+
+        Account mappingResult = (Account) mapper.mapToSObj(
+            wrapper,
+            Account.getSObjectType(),
+            reverseMappingAccountConfig
         );
 
         System.assert(String.isNotBlank(mappingResult.Id));
