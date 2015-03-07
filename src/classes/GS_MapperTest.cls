@@ -133,6 +133,28 @@ private class GS_MapperTest {
         System.assertEquals(ACCOUNT_NUMBER_OF_EMPLOYEES, mappingResult.NumberOfEmployees);
     }
 
+    @isTest(seeAllData = false) 
+    static void testReverseAutoMapping() {
+
+        GS_Mapper mapper = new GS_Mapper();
+
+        GS_AccountWrapperSF wrapper = new GS_AccountWrapperSF();
+        wrapper.Name = ACCOUNT_NAME;
+        wrapper.AnnualRevenue = ACCOUNT_ANNUAL_REVENUE;
+        wrapper.NumberOfEmployees = ACCOUNT_NUMBER_OF_EMPLOYEES;
+
+        Account mappingResult = (Account) mapper.mapToSObj(
+            wrapper,
+            Account.getSObjectType()
+        );
+
+        //System.assert(String.isNotBlank(mappingResult.Id));
+        System.assertEquals(ACCOUNT_NAME, mappingResult.Name);
+        System.assertEquals(ACCOUNT_ANNUAL_REVENUE, mappingResult.AnnualRevenue);
+        System.assertEquals(ACCOUNT_NUMBER_OF_EMPLOYEES, mappingResult.NumberOfEmployees);
+    }
+
+
     abstract class GS_SObjectWrapperBase {
         public String Id {get; set;}
         public String Name {get; set;}
