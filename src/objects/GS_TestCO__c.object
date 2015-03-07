@@ -72,7 +72,7 @@
         <unique>false</unique>
     </fields>
     <fields>
-        <fullName>Currency__c</fullName>
+        <fullName>thisCurrency__c</fullName>
         <externalId>false</externalId>
         <label>Currency</label>
         <precision>15</precision>
@@ -81,14 +81,14 @@
         <type>Currency</type>
     </fields>
     <fields>
-        <fullName>DateTime__c</fullName>
+        <fullName>thisDateTime__c</fullName>
         <externalId>false</externalId>
         <label>DateTime</label>
         <required>false</required>
         <type>DateTime</type>
     </fields>
     <fields>
-        <fullName>Date__c</fullName>
+        <fullName>thisDate__c</fullName>
         <externalId>false</externalId>
         <label>Date</label>
         <required>false</required>

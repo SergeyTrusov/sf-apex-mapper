@@ -37,7 +37,7 @@
     </target>
 
     <!-- Deploy the unpackaged set of metadata retrieved with retrieveUnpackaged -->
-    <target name="deployUnpackaged">
+    <target name="deploySrc">
       <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="src" rollbackOnError="true"/>
     </target>
 
