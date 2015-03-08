@@ -16,4 +16,6 @@ debug/
 #salesforce.schema
 
 #
-build.properties
+private*.properties
+
+.gradle/

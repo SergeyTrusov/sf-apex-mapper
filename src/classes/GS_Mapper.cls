@@ -9,23 +9,19 @@ public class GS_Mapper {
     }
 
     public Object mapTo(SObject sObj, Type domainType, Map<String, String> config) {
-        
         if(sObj == null) {
             throw new GS_MapperException(GS_ErrorMessage.valueIsNull('sObj'));
         }
-
         if(domainType == null) {
             throw new GS_MapperException(GS_ErrorMessage.valueIsNull('domainType'));
         }
 
         Object domainObject = null;
-
         if(config == null) {
             domainObject = autoMap(sObj, domainType);
         } else {
             domainObject = mapUseConfigThrowJson(sObj, domainType, config);
         }
-
         return domainObject;
     }
 
@@ -35,7 +31,10 @@ public class GS_Mapper {
 
     public SObject mapToSObj(Object domainObject, SObjectType sObjType, Map<String, String> reverseConfig) {
         if (domainObject == null) {
-            throw new GS_MapperException(GS_ErrorMessage.valueIsNull('object'));
+            throw new GS_MapperException(GS_ErrorMessage.valueIsNull('domainObject'));
+        }
+        if (sObjType == null) {
+            throw new GS_MapperException(GS_ErrorMessage.valueIsNull('sObjType'));
         }
 
         SObject sObj = null;
@@ -44,7 +43,6 @@ public class GS_Mapper {
         } else {
             sObj = reverseMapUseConfig(domainObject, sObjType, reverseConfig);
         }
-
         return sObj;
     }
 
@@ -67,8 +65,6 @@ public class GS_Mapper {
                 }
             }
             sObjJsonString = JSON.serialize(untypedSObjectMap);
-            //TODO: Find Right Way
-            //sObjJsonString = sObjJsonString.remove(CUSTOM_FIELDS_EXTENSION);
         }
         domainObject = JSON.deserialize(sObjJsonString, domainType);
         
@@ -128,19 +124,26 @@ public class GS_Mapper {
 
         Map<String, Object> untypedDomainMap = (Map<String, Object>) JSON.deserializeUntyped(serializedDomain);
 
+        System.debug(untypedDomainMap);
+
         Object value;
+        String customFieldName = '';
 
         SObject sObj = sObjType.newSObject();
         Schema.DescribeSObjectResult sObjectDescription = sObjType.getDescribe();
         Map<String, Schema.SObjectField> fieldSet = sObjectDescription.fields.getMap();
 
+        System.debug(fieldSet);
+
+
         for (String domainObjectKey : untypedDomainMap.keySet()) {
             value = untypedDomainMap.get(domainObjectKey);
-            if (value != null && fieldSet.containsKey(domainObjectKey)) {
-                if(sObjectDescription.isCustom()) {
-                    domainObjectKey += CUSTOM_FIELDS_EXTENSION;
-                }
-                sObj.put(domainObjectKey, value);
+            customFieldName = domainObjectKey;
+            if(sObjectDescription.isCustom()) {
+                customFieldName = domainObjectKey + CUSTOM_FIELDS_EXTENSION;
+            }
+            if (value != null && fieldSet.containsKey(customFieldName)) {
+                sObj.put(customFieldName, value);
             }
         }
 

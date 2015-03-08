@@ -21,6 +21,7 @@ private class GS_MapperTest {
 
     // Account Const
     private static final String ACCOUNT_ID = Account.getSObjectType().getDescribe().getKeyPrefix() + '000000000001';
+    private static final String CONTACT_ID = Contact.getSObjectType().getDescribe().getKeyPrefix() + '000000000001';
     private static final String ACCOUNT_NAME = 'Test Account';
     private static final Decimal ACCOUNT_ANNUAL_REVENUE = 55.0;
     private static final Integer ACCOUNT_NUMBER_OF_EMPLOYEES = 20;
@@ -214,6 +215,67 @@ private class GS_MapperTest {
         System.assertEquals(ACCOUNT_NUMBER_OF_EMPLOYEES, mappingResult.NumberOfEmployees);
     }
 
+    @isTest(seeAllData = false) 
+    static void testAutoMapDomainToCustomSObject() {
+
+        GS_Mapper mapper = new GS_Mapper();
+
+        GS_TestCOWrapperSF wrapper = new GS_TestCOWrapperSF();
+        wrapper.AccountId = ACCOUNT_ID;
+        wrapper.ContactId = CONTACT_ID;
+        // ToDo standard fields
+        //wrapper.Name = TEST_NAME;
+        wrapper.Count = TEST_COUNT;
+        wrapper.thisCurrency = TEST_DECIMAL;
+        wrapper.thisDateTime = TEST_DATETIME;
+        wrapper.thisDate = TEST_DATE;
+        wrapper.IsActive = TEST_BOOLEAN;
+        wrapper.TextArea = TEST_STRING;
+
+        System.debug(JSON.serialize(wrapper));
+        System.debug(GS_TestCO__c.getSObjectType());
+
+        GS_TestCO__c mappingResult = (GS_TestCO__c) mapper.mapToSObj(
+            wrapper,
+            GS_TestCO__c.getSObjectType()
+        );
+
+        System.debug(mappingResult);
+
+        System.assertEquals(ACCOUNT_ID, mappingResult.AccountId__c);
+        System.assertEquals(CONTACT_ID, mappingResult.ContactId__c);
+        // ToDo
+        //System.assertEquals(TEST_NAME, mappingResult.Name);
+        System.assertEquals(TEST_COUNT, mappingResult.Count__c);
+        System.assertEquals(TEST_DECIMAL, mappingResult.thisCurrency__c);
+        System.assertEquals(TEST_DATETIME, mappingResult.thisDateTime__c);
+        System.assertEquals(TEST_DATE, mappingResult.thisDate__c);
+        System.assertEquals(TEST_BOOLEAN, mappingResult.IsActive__c);
+        System.assertEquals(TEST_STRING, mappingResult.TextArea__c);
+    }
+
+    @isTest(seeAllData = false)
+    static void testMapDomainToSObjectExceptions() {
+
+        GS_Mapper mapper = new GS_Mapper();
+        Account mappingResult = null;
+
+        try {
+            mappingResult = (Account) mapper.mapToSObj(null, null);
+        } catch(GS_MapperException mapperException) {
+            System.assertEquals(GS_ErrorMessage.valueIsNull('domainObject'), mapperException.getMessage());
+        }
+
+        GS_AccountWrapperSF accountWrapper = new GS_AccountWrapperSF();
+
+        try {
+            mappingResult = (Account) mapper.mapToSObj(accountWrapper, null);
+        } catch(GS_MapperException mapperException) {
+            System.assertEquals(GS_ErrorMessage.valueIsNull('sObjType'), mapperException.getMessage());
+        }
+
+        System.assertEquals(mappingResult, null);
+    }
 
     abstract class GS_SObjectWrapperBase {
         public String Id {get; set;}

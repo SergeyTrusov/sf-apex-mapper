@@ -1,0 +1,159 @@
+import groovy.xml.*
+import groovy.json.*
+
+// Ant tasks
+def antTaskPrefix = 'ant'
+def antGroupName = 'Ant'
+ant.importBuild('build.xml') { 
+    antTaskName -> antTaskPrefix + antTaskName
+}
+tasks.matching { 
+    task -> task.name.startsWith(antTaskPrefix)
+}*.group = antGroupName
+tasks.matching { 
+    task -> task.name.startsWith(antTaskPrefix)
+}.each {
+    task -> task.logging.level = LogLevel.INFO
+}
+
+task deployChanges << {
+    def gitOutput = getGitOutput();
+    logger.info('')
+    logger.info('Git Output : ')
+    logger.info(gitOutput)
+    
+    def parseWrapper = parseGitOutput(gitOutput)
+    def chnagedSourceFiles = parseWrapper.changedFiles
+    def folderNameChangedFilesMap = parseWrapper.folderFilesMap
+    
+    def sourceAndItsMetadataFiles = addMetadataFilesToSources(chnagedSourceFiles)
+    logger.info('')
+    logger.info('Changed Files For Deploy : ')
+    sourceAndItsMetadataFiles.each {
+        file -> logger.info(file)
+    }
+
+    delete fileTree(dir: getProjectProperty('build.dir'))
+    logger.info('')
+    logger.info('Delete Forlder : ' + getProjectProperty('build.dir'))
+
+    copy {
+        from getProjectProperty('build.src.dir')
+        into getProjectProperty('build.dir')
+        include sourceAndItsMetadataFiles
+    }
+    logger.info('')
+    logger.info('Copy Files From : ' + getProjectProperty('build.src.dir') + 
+        ' To : ' + getProjectProperty('build.dir'))
+
+    def currentSfApiVersion = getCurrentSfApiVersion()
+    logger.info('')
+    logger.info('Current SF API Version : ' + currentSfApiVersion)
+
+    def packageXmlString = createPackageXml(folderNameChangedFilesMap)
+    logger.info('')
+    logger.info('Package.xml : \r\n' + packageXmlString)
+
+    def packageXml = new File(getProjectProperty('build.dir') + '/src/package.xml')
+    packageXml.text = packageXmlString
+
+    antdeploy.execute()
+}
+//tasks.'ant-deploy'.dependsOn(createPackageXml)
+
+
+def String getGitOutput() {
+    String gitOutput = '';
+    new ByteArrayOutputStream().withStream { os ->
+        def result = exec {
+            executable = 'git'
+            args = [
+                'diff-tree', 
+                '--no-commit-id', 
+                '--name-only', 
+                '-r', 
+                getProjectProperty('git.commit.id.first'), 
+                getProjectProperty('git.commit.id.last')
+            ]
+            standardOutput = os
+        }
+        gitOutput = os.toString()
+    }
+    return gitOutput;
+}
+
+def Expando parseGitOutput(String output) {
+    def changedFiles = output.split('\\n')
+
+    def chnagedSourceFiles = [];
+    def folderNameChangedFilesMap = [:]
+
+    changedFiles.each { changedFile ->
+        def filePath = changedFile.split('/')
+        if (filePath.size() >= 3) {
+            def metadataFolderName = filePath[1]
+            def changedFilesInFolder = folderNameChangedFilesMap.get(metadataFolderName)
+            def currentFile = filePath[filePath.size() - 1]
+            if (currentFile.indexOf('-meta.xml') == -1) {
+                chnagedSourceFiles.add(changedFile)
+                def currentFileWithoutExtension = currentFile
+                    .substring(0, currentFile.indexOf('.'))
+                if (changedFilesInFolder) {
+                    changedFilesInFolder.add(currentFileWithoutExtension)
+                } else {
+                    changedFilesInFolder = [ currentFileWithoutExtension ]
+                }
+                folderNameChangedFilesMap.put(metadataFolderName, changedFilesInFolder)
+            }
+        }
+    }
+    return new Expando( changedFiles : chnagedSourceFiles, 
+        folderFilesMap : folderNameChangedFilesMap);
+}
+
+def List<String> addMetadataFilesToSources(List<String> chnagedSourceFiles) {
+    def sourceAndItsMetadataFiles = []
+    for (def i in chnagedSourceFiles) {
+        sourceAndItsMetadataFiles.add(i)
+        sourceAndItsMetadataFiles.add(i + '-meta.xml')
+    }
+    return sourceAndItsMetadataFiles
+}
+
+def String getCurrentSfApiVersion() {
+    def originalPackageXml = new XmlParser()
+        .parse('src/package.xml')
+    return originalPackageXml.get('version').text();
+}
+
+def String createPackageXml(Map<String, List<String>> folderNameChangedFilesMap) {
+    def metadataDescribe = new JsonSlurper()
+        .parse(file(getProjectProperty('metadata.describe.location')))
+
+    def stringWriter = new StringWriter()
+    def builder = new MarkupBuilder(stringWriter)
+    builder.mkp.xmlDeclaration(version: "1.0", encoding: "UTF-8")
+    builder.package('xmlns' : "http://soap.sforce.com/2006/04/metadata"){
+        for(filderName in folderNameChangedFilesMap.keySet()) {
+            types() {
+                def files = folderNameChangedFilesMap.get(filderName)
+                for(file in files) {
+                    members(file)
+                }
+                def theNode = metadataDescribe.metadataObjects
+                    .find { it.directoryName == filderName }
+                delegate.name(theNode.xmlName)
+            }
+        }
+        delegate.version(currentSfApiVersion)
+    }
+    return stringWriter.toString()
+}
+
+def String getProjectProperty(String propertyName) {
+    String customProprty = null
+    if (hasProperty(propertyName)) {
+        customProprty = this.properties[propertyName]
+    }
+    return customProprty
+}
