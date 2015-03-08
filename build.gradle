@@ -61,6 +61,70 @@ task deployChanges << {
 }
 //tasks.'ant-deploy'.dependsOn(createPackageXml)
 
+task backup << {
+    def backupFolder = new File('backup')
+
+    if (!backupFolder.exists()) {
+        backupFolder.mkdirs()
+    } else {
+        backupFolder.deleteDir()
+        // delete fileTree(dir: 'backup', exclude: '*')
+    }
+
+    def result = exec {
+        executable = 'git'
+        args = [
+            'clone', 
+            'git@github.com:SergeyTrusov/sf-apex-mapper.git',
+            'backup'
+        ]
+    }
+    String gitOutput = '';
+    new ByteArrayOutputStream().withStream { os ->
+         result = exec {
+            executable = 'git'
+            args = [
+                'branch', 
+                '-r'
+            ]
+            standardOutput = os
+            workingDir = 'backup'
+        }
+        gitOutput = os.toString()
+    }
+
+    if (!gitOutput.contains('origin/backup')) {
+        result = exec {
+            executable = 'git'
+            args = [
+                'checkout', 
+                '-b',
+                'backup'
+            ]
+            workingDir = 'backup'
+        }
+    }
+
+    antretrieveMetadata.execute()
+
+
+    result = exec {
+        executable = 'git'
+        args = [
+            'add', 
+            '-A'
+        ]
+    }
+
+    result = exec {
+        executable = 'git'
+        args = [
+            'commit', 
+            '-m',
+            'backup' + new Date()
+        ]
+    }
+}
 
 def String getGitOutput() {
     String gitOutput = '';

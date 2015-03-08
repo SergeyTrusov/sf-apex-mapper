@@ -10,15 +10,14 @@
         </classpath>
     </taskdef>
 
-    <target name="retrieveUnpackaged">
-      <mkdir dir="retrieveUnpackaged"/>
+    <target name="retrieveMetadata">
       <sf:retrieve 
         username="${sf.username}" 
         password="${sf.password}" 
         serverurl="${sf.serverurl}" 
         maxPoll="${sf.maxPoll}" 
-        retrieveTarget="retrieveUnpackaged" 
-        unpackaged="unpackaged/package.xml"/>
+        retrieveTarget="${sf.path.retrieveTarget}" 
+        unpackaged="${sf.path.packageXml}"/>
     </target>
 
     <target name="deploy">
@@ -48,12 +47,6 @@
 <!-- Shows removing code; only succeeds if done after deployCode -->
 <target name="undeployCode">
   <sf:deploy username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" maxPoll="${sf.maxPoll}" deployRoot="removecodepkg"/>
-</target>
-
-<!-- Shows retrieving code; only succeeds if done after deployCode -->
-<target name="retrieveCode">
-  <!-- Retrieve the contents listed in the file codepkg/package.xml into the codepkg directory -->
-  <sf:retrieve username="${sf.username}" password="${sf.password}" serverurl="${sf.serverurl}" maxPoll="${sf.maxPoll}" retrieveTarget="codepkg" unpackaged="codepkg/package.xml"/>
 </target>
 
 <!-- Shows deploying code, running all tests, and running tests (1 of which fails), and logging. -->
