@@ -23,16 +23,17 @@ task deployChanges(dependsOn: 'backup') << {
     logger.info(gitOutput)
     
     def parseWrapper = parseGitOutput(gitOutput)
-    def chnagedSourceFiles = parseWrapper.changedFiles
+    def changedSourceFiles = parseWrapper.changedFiles
     def folderNameChangedFilesMap = parseWrapper.folderFilesMap
+    def folderNameDeletedFilesMap = parseWrapper.filderDeletedFilesMap
     
-    if (chnagedSourceFiles.size() == 0) {
+    if (changedSourceFiles.size() == 0) {
         logger.info('')
         logger.quiet('There no changed files for deploy')
         return
     }
 
-    def sourceAndItsMetadataFiles = addMetadataFilesToSources(chnagedSourceFiles)
+    def sourceAndItsMetadataFiles = addMetadataFilesToSources(changedSourceFiles)
     logger.info('')
     logger.info('Changed Files For Deploy : ')
     sourceAndItsMetadataFiles.each {
@@ -55,6 +56,40 @@ task deployChanges(dependsOn: 'backup') << {
     def currentSfApiVersion = getCurrentSfApiVersion()
     logger.info('')
     logger.info('Current SF API Version : ' + currentSfApiVersion)
+
+    if (folderNameDeletedFilesMap.keySet().size() > 0) {
+
+        String antOutput = captureAntOutput(ant) {
+            tasks.'ant-listMetadata'.execute()
+        }
+
+        def folderNameExistDeleteFilesMap = [:]
+
+        folderNameDeletedFilesMap.each { folder, listOfMetadata ->
+            listOfMetadata.each { metadataFile ->
+                def folderWithMetadata = folder + '/' + metadataFile
+                if (antOutput.contains(folderWithMetadata)) {
+                    def metadataList = folderNameExistDeleteFilesMap.get(folder)
+                    if (metadataList) {
+                        metadataList.add(metadataFile)
+                    } else{
+                        metadataList = [metadataFile]
+                    }
+                    folderNameExistDeleteFilesMap.put(folder, metadataList)
+                }
+            }
+        }
+
+        if (folderNameExistDeleteFilesMap.keySet().size() > 0) {
+            def destructiveChangesXmlString = createPackageXml(folderNameExistDeleteFilesMap)
+            logger.info('')
+            logger.info('destructiveChnges.xml : \r\n' + destructiveChangesXmlString)
+
+            def destructiveChangesXml = 
+                new File(getProjectProperty('build.dir') + '/src/destructiveChanges.xml')
+            destructiveChangesXml.text = destructiveChangesXmlString
+        }
+    }
 
     def packageXmlString = createPackageXml(folderNameChangedFilesMap)
     logger.info('')
@@ -184,10 +219,10 @@ def String getGitOutput() {
             args = [
                 'diff-tree', 
                 '--no-commit-id', 
-                '--name-only', 
+                '--name-status', 
                 '-r', 
-                getProjectProperty('git.commit.id.first'), 
-                getProjectProperty('git.commit.id.last')
+                getProjectProperty('git.commit.id.last'),
+                getProjectProperty('git.commit.id.first') 
             ]
             standardOutput = os
         }
@@ -199,17 +234,38 @@ def String getGitOutput() {
 def Expando parseGitOutput(String output) {
     def changedFiles = output.split('\\n')
 
-    def chnagedSourceFiles = [];
+    def changedSourceFiles = [];
     def folderNameChangedFilesMap = [:]
+    def folderNameDeletedFilesMap = [:]
 
     changedFiles.each { changedFile ->
+
+        // Possible Modifiers
+        // ' ' = unmodified
+        // M = modified
+        // A = added
+        // D = deleted
+        // R = renamed
+        // C = copied
+        // U = updated but unmerged
+        def modifier = changedFile.substring(0, 1)
+
+        // Remove Modifier
+        changedFile = changedFile.substring(1, changedFile.length()).trim()
+
         def filePath = changedFile.split('/')
         if (filePath.size() >= 3) {
             def metadataFolderName = filePath[1]
-            def changedFilesInFolder = folderNameChangedFilesMap.get(metadataFolderName)
+
+            def changedFilesInFolder = null
+            if (modifier == 'D') {
+                changedFilesInFolder = folderNameDeletedFilesMap.get(metadataFolderName)
+            } else {
+                changedFilesInFolder = folderNameChangedFilesMap.get(metadataFolderName)
+            }
+
             def currentFile = filePath[filePath.size() - 1]
             if (currentFile.indexOf('-meta.xml') == -1) {
-                chnagedSourceFiles.add(changedFile)
                 def currentFileWithoutExtension = currentFile
                     .substring(0, currentFile.indexOf('.'))
                 if (changedFilesInFolder) {
@@ -217,17 +273,23 @@ def Expando parseGitOutput(String output) {
                 } else {
                     changedFilesInFolder = [ currentFileWithoutExtension ]
                 }
-                folderNameChangedFilesMap.put(metadataFolderName, changedFilesInFolder)
+                if (modifier == 'D') {
+                    folderNameDeletedFilesMap.put(metadataFolderName, changedFilesInFolder)
+                } else {
+                    changedSourceFiles.add(changedFile)
+                    folderNameChangedFilesMap.put(metadataFolderName, changedFilesInFolder)
+                }
             }
         }
     }
-    return new Expando( changedFiles : chnagedSourceFiles, 
-        folderFilesMap : folderNameChangedFilesMap);
+    return new Expando( changedFiles : changedSourceFiles,
+        folderFilesMap : folderNameChangedFilesMap,
+        filderDeletedFilesMap : folderNameDeletedFilesMap);
 }
 
-def List<String> addMetadataFilesToSources(List<String> chnagedSourceFiles) {
+def List<String> addMetadataFilesToSources(List<String> changedSourceFiles) {
     def sourceAndItsMetadataFiles = []
-    for (def i in chnagedSourceFiles) {
+    for (def i in changedSourceFiles) {
         sourceAndItsMetadataFiles.add(i)
         sourceAndItsMetadataFiles.add(i + '-meta.xml')
     }
@@ -270,4 +332,20 @@ def String getProjectProperty(String propertyName) {
         customProprty = this.properties[propertyName]
     }
     return customProprty
+}
+
+def captureAntOutput(ant, Closure command) {
+    def buffer = new ByteArrayOutputStream()
+    def captureStream = new PrintStream(buffer, true, "UTF-8")
+    def listener = new org.apache.tools.ant.DefaultLogger(
+        errorPrintStream: captureStream,
+        outputPrintStream: captureStream,
+        messageOutputLevel: org.apache.tools.ant.Project.MSG_INFO
+    )
+
+    ant.project.addBuildListener(listener)
+    project.configure(ant, command)
+    ant.project.removeBuildListener(listener)
+
+    return buffer.toString("UTF-8");
 }

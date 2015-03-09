@@ -7,7 +7,7 @@
 
     <taskdef resource="com/salesforce/antlib.xml" uri="antlib:com.salesforce">
         <classpath>
-            <pathelement location="ant-salesforce.jar" />
+            <pathelement location="${env.GRADLE_HOME}/lib/ant-salesforce.jar" />
         </classpath>
     </taskdef>
 
@@ -36,6 +36,14 @@
     <!-- logType="Debugonly" -->
     <!-- <runTest>SampleDeployClass</runTest> -->
 
+    <target name="listMetadata">
+        <sf:listMetadata 
+            username="${sf.username}" 
+            password="${sf.password}" 
+            serverurl="${sf.serverurl}" 
+            metadataType="${sf.metadataType}"/>
+    </target>
+
     <!-- Retrieve all the items of a particular metadata type -->
     <target name="bulkRetrieve">
         <sf:bulkRetrieve 
@@ -44,26 +52,7 @@
             serverurl="${sf.serverurl}" 
             maxPoll="${sf.maxPoll}" 
             metadataType="${sf.metadataType}" 
-            retrieveTarget="retrieveUnpackaged"/>
-    </target>
-
-    <!-- Shows removing code; only succeeds if done after deployCode -->
-    <target name="undeployCode">
-        <sf:deploy 
-            username="${sf.username}" 
-            password="${sf.password}" 
-            serverurl="${sf.serverurl}" 
-            maxPoll="${sf.maxPoll}" 
-            deployRoot="removecodepkg"/>
-    </target>
-
-    <!-- Retrieve the information of all items of a particular metadata type -->
-    <target name="listMetadata">
-        <sf:listMetadata 
-            username="${sf.username}" 
-            password="${sf.password}" 
-            serverurl="${sf.serverurl}" 
-            metadataType="${sf.metadataType}"/>
+            retrieveTarget="${sf.metadataDir}"/>
     </target>
 
     <!-- Retrieve the information on all supported metadata type -->
