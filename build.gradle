@@ -140,6 +140,7 @@ task backup << {
             executable = 'git'
             args = [
                 'diff', 
+                'HEAD', 
                 '--name-only'
             ]
             standardOutput = os
