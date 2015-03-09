@@ -16,7 +16,7 @@ tasks.matching {
     task -> task.logging.level = LogLevel.INFO
 }
 
-task deployChanges << {
+task deployChanges(dependsOn: 'backup') << {
     def gitOutput = getGitOutput();
     logger.info('')
     logger.info('Git Output : ')
@@ -95,13 +95,22 @@ task backup << {
 
     if (!gitOutput.contains('origin/backup')) {
         result = exec {
+            workingDir = 'backup'
             executable = 'git'
             args = [
                 'checkout', 
                 '-b',
                 'backup'
             ]
+        }
+    } else {
+        result = exec {
             workingDir = 'backup'
+            executable = 'git'
+            args = [
+                'checkout', 
+                'backup'
+            ]
         }
     }
 
@@ -114,6 +123,26 @@ task backup << {
             'add', 
             '-A'
         ]
+        workingDir = 'backup'
+    }
+
+    gitOutput = '';
+    new ByteArrayOutputStream().withStream { os ->
+         result = exec {
+            workingDir = 'backup'
+            executable = 'git'
+            args = [
+                'diff', 
+                '--name-only'
+            ]
+            standardOutput = os
+        }
+        gitOutput = os.toString()
+    }
+
+    Boolean isAnyChanges = gitOutput != null && gitOutput.trim() != '';
+    if (!isAnyChanges) {
+        return
     }
 
     result = exec {
@@ -121,8 +150,19 @@ task backup << {
         args = [
             'commit', 
             '-m',
-            'backup' + new Date()
+            'backup on ' + new Date()
         ]
+        workingDir = 'backup'
+    }
+
+    result = exec {
+        executable = 'git'
+        args = [
+            'push', 
+            'origin',
+            'backup'
+        ]
+        workingDir = 'backup'
     }
 }
 
