@@ -30,8 +30,8 @@ private class GS_MapperTest {
     public static final String TEST_NAME = 'Test';
     public static final Integer TEST_COUNT = 1;
     public static final Decimal TEST_DECIMAL = 1.111;
-    public static final Date TEST_DATE = Date.today();
-    public static final DateTime TEST_DATETIME = Datetime.now();
+    public static final Date TEST_DATE = Date.newInstance(2015, 5, 5);
+    public static final DateTime TEST_DATETIME = Datetime.newInstance(2015, 5, 5);
     public static final Boolean TEST_BOOLEAN = true;
     public static final String TEST_STRING = 'A lot of text.';
 
