@@ -1,9 +1,17 @@
 public class GS_Mapper {
 
+    // Constants
     public static final String CUSTOM_FIELDS_EXTENSION = '__c';
+    public static final String DATE_JSON_FORMAT = '"{0}"';
+    public static final Map<String, Type> NAME_TYPE_MAP = new Map<String, Type>{
+        'DATE' => Date.class,
+        'DATETIME' => DateTime.class
+    };
 
+    // Construstor
     public GS_Mapper() { }
 
+    // Public Methods
     public Object mapTo(SObject sObj, Type domainType) {
         return mapTo(sObj, domainType, null);
     }
@@ -46,6 +54,7 @@ public class GS_Mapper {
         return sObj;
     }
 
+    // Private Methods
     private Object autoMap(SObject sObj, Type domainType) {
         
         Object domainObject = null;
@@ -124,17 +133,12 @@ public class GS_Mapper {
 
         Map<String, Object> untypedDomainMap = (Map<String, Object>) JSON.deserializeUntyped(serializedDomain);
 
-        System.debug(untypedDomainMap);
-
         Object value;
         String customFieldName = '';
 
         SObject sObj = sObjType.newSObject();
         Schema.DescribeSObjectResult sObjectDescription = sObjType.getDescribe();
         Map<String, Schema.SObjectField> fieldSet = sObjectDescription.fields.getMap();
-
-        System.debug(fieldSet);
-
 
         for (String domainObjectKey : untypedDomainMap.keySet()) {
             value = untypedDomainMap.get(domainObjectKey);
@@ -143,10 +147,17 @@ public class GS_Mapper {
                 customFieldName = domainObjectKey + CUSTOM_FIELDS_EXTENSION;
             }
             if (value != null && fieldSet.containsKey(customFieldName)) {
-                sObj.put(customFieldName, value);
+                Schema.DescribeFieldResult describeFieldResult = fieldSet.get(customFieldName).getDescribe();
+                Schema.SoapType soapType = describeFieldResult.getSoapType();
+                String typeName = soapType.name();
+                if (NAME_TYPE_MAP.containsKey(typeName)) {
+                    String formattedString = String.format(DATE_JSON_FORMAT, new String[]{(String)value});
+                    sObj.put(customFieldName, JSON.deserialize(formattedString, NAME_TYPE_MAP.get(typeName)));
+                } else {
+                    sObj.put(customFieldName, value);
+                }
             }
         }
-
         return sObj;
     }
 
@@ -192,7 +203,6 @@ public class GS_Mapper {
     //                token = sObjJsonString.substring(previousPosition, currentPosition);
                     
     //                stringBuilder.add(token);
-    //                System.debug(LoggingLevel.ERROR, token);
 
     //                previousPosition = currentPosition;
     //                currentPosition = sObjJsonString.indexOf(COMMA, previousPosition + 1);

@@ -31,7 +31,7 @@ private class GS_MapperTest {
     public static final Integer TEST_COUNT = 1;
     public static final Decimal TEST_DECIMAL = 1.111;
     public static final Date TEST_DATE = Date.newInstance(2015, 5, 5);
-    public static final DateTime TEST_DATETIME = Datetime.newInstance(2015, 5, 5);
+    public static final DateTime TEST_DATETIME = Datetime.newInstanceGmt(2015, 5, 5, 5, 5, 5);
     public static final Boolean TEST_BOOLEAN = true;
     public static final String TEST_STRING = 'A lot of text.';
 
@@ -232,15 +232,10 @@ private class GS_MapperTest {
         wrapper.IsActive = TEST_BOOLEAN;
         wrapper.TextArea = TEST_STRING;
 
-        System.debug(JSON.serialize(wrapper));
-        System.debug(GS_TestCO__c.getSObjectType());
-
         GS_TestCO__c mappingResult = (GS_TestCO__c) mapper.mapToSObj(
             wrapper,
             GS_TestCO__c.getSObjectType()
         );
-
-        System.debug(mappingResult);
 
         System.assertEquals(ACCOUNT_ID, mappingResult.AccountId__c);
         System.assertEquals(CONTACT_ID, mappingResult.ContactId__c);
